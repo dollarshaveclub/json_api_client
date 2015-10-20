@@ -6,7 +6,10 @@ module JsonApiClient
       record_class = result_set.record_class
       grouped_data = data.group_by{|datum| datum["type"]}
       @data = grouped_data.inject({}) do |h, (type, records)|
-        klass = Utils.compute_type(record_class, type.singularize.classify)
+
+        klass = get_record_association_class_name(record_class, type)
+        klass = Utils.compute_type(record_class, type.singularize.classify) unless klass
+
         h[type] = records.map do |datum|
           params = klass.parser.parameters_from_resource(datum)
           resource = klass.load(params)
@@ -15,6 +18,11 @@ module JsonApiClient
         end.index_by(&:id)
         h
       end
+    end
+
+    def get_record_association_class_name(record_class, attr_name)
+      association = record_class.associations.detect{|association| association.attr_name == attr_name.to_sym}
+      return association.options[:class_name].constantize if association.options[:class_name]
     end
 
     def data_for(method_name, definition)

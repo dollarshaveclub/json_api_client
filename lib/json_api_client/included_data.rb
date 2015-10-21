@@ -21,8 +21,14 @@ module JsonApiClient
     end
 
     def get_record_association_class_name(record_class, attr_name)
-      association = record_class.associations.detect{|association| association.attr_name == attr_name.to_sym}
+
+      association = record_class.associations.detect do |association|
+        match_sym = (association.class.name.include?('HasMany')) ? attr_name.to_sym : attr_name.singularize.to_sym
+        association.attr_name == match_sym
+      end
+
       return association.options[:class_name].constantize if association.options[:class_name]
+
     end
 
     def data_for(method_name, definition)

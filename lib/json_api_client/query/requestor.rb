@@ -10,13 +10,13 @@ module JsonApiClient
       # expects a record
       def create(record)
         request(:post, klass.path(record.attributes), {
-          data: record.as_json_api
+          data: request_body(record)
         })
       end
 
       def update(record)
         request(:patch, resource_path(record.attributes), {
-          data: record.as_json_api
+          data: request_body(record)
         })
       end
 
@@ -61,6 +61,12 @@ module JsonApiClient
 
       def request(type, path, params)
         klass.parser.parse(klass, connection.run(type, path, params, klass.custom_headers))
+      end
+
+      def request_body(record)
+        data = record.as_json_api
+        data[:attributes] = data[:attributes].except(*record.class.prefix_params)
+        data
       end
 
     end

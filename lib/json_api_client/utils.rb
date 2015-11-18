@@ -21,7 +21,8 @@ module JsonApiClient
         end
       end
 
-      raise NameError, "uninitialized constant #{candidates.first}"
+      nil
+
     end
 
   end

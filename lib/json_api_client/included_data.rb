@@ -3,12 +3,17 @@ module JsonApiClient
     attr_reader :data
 
     def initialize(result_set, data)
+
       record_class = result_set.record_class
       grouped_data = data.group_by{|datum| datum["type"]}
+
+
       @data = grouped_data.inject({}) do |h, (type, records)|
 
-        klass = get_record_association_class_name(record_class, type)
-        klass = Utils.compute_type(record_class, type.singularize.classify) unless klass
+        klass = Utils.compute_type(record_class, type.singularize.classify)
+        klass = get_record_association_class_name(record_class, type) unless klass
+
+        raise NameError, "no class constant for #{type}" unless klass
 
         h[type] = records.map do |datum|
           params = klass.parser.parameters_from_resource(datum)
@@ -16,8 +21,15 @@ module JsonApiClient
           resource.last_result_set = result_set
           resource
         end.index_by(&:id)
+
         h
+
       end
+
+    end
+
+    def get_locale_model_class(record_class, attr_name)
+      record_class.name.gsub(record_class.name.demodulize, attr_name.singularize.camelize).safe_constantize
     end
 
     def get_record_association_class_name(record_class, attr_name)
@@ -27,7 +39,9 @@ module JsonApiClient
         association.attr_name == match_sym
       end
 
-      return association.options[:class_name].constantize if association.options[:class_name]
+      if association
+        return association.options[:class_name].constantize if association.options[:class_name]
+      end
 
     end
 

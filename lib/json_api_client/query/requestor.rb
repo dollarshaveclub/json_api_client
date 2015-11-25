@@ -48,11 +48,21 @@ module JsonApiClient
       def_delegators :klass, :connection
 
       def resource_path(parameters)
+
         if resource_id = parameters[klass.primary_key]
-          File.join(klass.path(parameters), encoded(resource_id))
+
+          path = klass.path(parameters)
+
+          if path.is_a?(Array)
+            path.map{|p| File.join(p, encoded(resource_id)) }
+          else
+            File.join(path, encoded(resource_id))
+          end
+
         else
           klass.path(parameters)
         end
+
       end
 
       def encoded(part)

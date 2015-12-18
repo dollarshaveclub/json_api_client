@@ -37,8 +37,16 @@ module JsonApiClient
       def custom(method_name, options, params)
         path = resource_path(params)
         params.delete(klass.primary_key)
-        path = (path.length == 0) ? method_name.to_s : File.join(path, method_name.to_s)
-        request(options.fetch(:request_method, :get), path, params)
+
+        unless path.is_a?(Array)
+          paths = [(p.length == 0) ? method_name.to_s : File.join(p, method_name.to_s)]
+        else
+          paths = path.map do |p|
+            (p.length == 0) ? method_name.to_s : File.join(p, method_name.to_s)
+          end
+        end
+
+        request(options.fetch(:request_method, :get), paths, params)
       end
 
       protected

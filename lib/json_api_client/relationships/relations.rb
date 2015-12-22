@@ -34,15 +34,19 @@ module JsonApiClient
 
       def set_attribute(name, value)
         value = case value
-        when JsonApiClient::Resource
-          {data: value.as_relation}
-        when Array
-          {data: value.map(&:as_relation)}
-        when NilClass
-          {data: nil}
-        else
-          value
-        end
+                  when JsonApiClient::Resource
+                    {data: value.as_relation}
+                  when Array
+                    {data: value.map(&:as_relation)}
+                  when NilClass
+                    {data: nil}
+                  else
+                    if value.respond_to?(:id)
+                      {data: {id: value.id, type: value.class.name.demodulize.underscore.pluralize} }
+                    else
+                      value
+                    end
+                end
         attribute_will_change!(name) if value != attributes[name]
         attributes[name] = value
       end

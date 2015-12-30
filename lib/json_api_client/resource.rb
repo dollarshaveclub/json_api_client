@@ -398,8 +398,10 @@ module JsonApiClient
 
       # look in included data
       data = last_result_set.included.data_for(method, relationship_definitions)
-      return data if data
+      data.compact! if data.is_a?(Array)
 
+
+      return data unless data.blank?
 
       if association
         # look for a defined relationship url
@@ -408,9 +410,22 @@ module JsonApiClient
         end
       end
 
-      if association.association_class
-        association_id = relationship_definitions['data']['id']
-        return association.association_class.find(association_id).first
+      if association && association.association_class
+
+        relationship_data = relationship_definitions['data']
+
+        unless relationship_data.is_a?(Array)
+          association_id = relationship_data['id']
+          return association.association_class.find(association_id).first
+        else
+          return [].tap do |associations|
+            relationship_data.each do |rel|
+              association_id = rel['id']
+              associations << association.association_class.find(association_id).first
+            end
+          end
+        end
+
       end
 
       nil

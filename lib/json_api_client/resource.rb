@@ -415,15 +415,20 @@ module JsonApiClient
         relationship_data = relationship_definitions['data']
 
         unless relationship_data.is_a?(Array)
+
+          return nil if relationship_data.nil?
           association_id = relationship_data['id']
           return association.association_class.find(association_id).first
+
         else
+
           return [].tap do |associations|
             relationship_data.each do |rel|
               association_id = rel['id']
               associations << association.association_class.find(association_id).first
             end
           end
+
         end
 
       end

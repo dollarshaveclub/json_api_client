@@ -400,12 +400,19 @@ module JsonApiClient
       data = last_result_set.included.data_for(method, relationship_definitions)
       return data if data
 
-      if association = association_for(method)
+
+      if association
         # look for a defined relationship url
         if relationship_definitions["links"] && url = relationship_definitions["links"]["related"]
           return association.data(url)
         end
       end
+
+      if association.association_class
+        association_id = relationship_definitions['data']['id']
+        return association.association_class.find(association_id).first
+      end
+
       nil
     end
 

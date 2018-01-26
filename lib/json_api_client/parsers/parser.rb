@@ -5,6 +5,8 @@ module JsonApiClient
         def parse(klass, response)
           data = response.body.present? ? response.body : {}
 
+          return data if klass.try(:red_engine?)
+
           ResultSet.new.tap do |result_set|
             result_set.record_class = klass
             result_set.uri = response.env[:url]
